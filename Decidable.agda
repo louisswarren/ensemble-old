@@ -30,5 +30,5 @@ noIsNo {_} {a} refl = since a
 Decidable : {A : Set} → (A → Set) → Set
 Decidable P = ∀ x → Dec (P x)
 
-BiDecidable : {A B : Set} → (A → B → Set) → Set
-BiDecidable P = ∀ x y → Dec (P x y)
+Decidable≡ : Set → Set
+Decidable≡ A = (x y : A) → Dec (x ≡ y)
