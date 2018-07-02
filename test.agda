@@ -13,7 +13,3 @@ natdec (suc n) zero     = no (λ ())
 natdec (suc n) (suc m)  with natdec n m
 ...                     | yes refl = yes refl
 ...                     | no x = no λ seq → x (droop seq)
-
-
-_∈_ : ℕ → List ℕ → Set
-_∈_ = Membership._∈_ (membership natdec)

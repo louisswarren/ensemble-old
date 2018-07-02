@@ -1,12 +1,14 @@
 module Decidable where
 
-open import Agda.Builtin.Equality
+open import Agda.Builtin.Equality public
 
 data ⊥ : Set where
 
 ¬_ : (A : Set) → Set
 ¬ A = A → ⊥
 
+_≢_ : {A : Set} → A → A → Set
+x ≢ y = ¬(x ≡ y)
 
 data Dec (A : Set) : Set where
   yes :   A → Dec A

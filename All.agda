@@ -6,6 +6,9 @@ data All {A : Set} (P : A → Set) : List A → Set where
   []  : All P []
   _∷_ : ∀{x xs} → P x → All P xs → All P (x ∷ xs)
 
+data Any {A : Set} (P : A → Set) : List A → Set where
+  any : ∀{y} → ∀ xs → P y → ∀ ys → Any P (xs ++ y ∷ ys)
+
 all++ : {A : Set} {xs ys : List A} {P : A → Set}
         → All P xs → All P ys → All P (xs ++ ys)
 all++ []       ys = ys

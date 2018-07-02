@@ -12,11 +12,10 @@ _++_ : {A : Set} → List A → List A → List A
 []       ++ ys = ys
 (x ∷ xs) ++ ys = x ∷ (xs ++ ys)
 
-record Membership {A : Set} : Set where
-  constructor membership
-  field
-    _≟_ : Decidable≡ A
+data _∈_ {A : Set} (x : A) : List A → Set where
+  head : ∀{y ys} → x ≡ y  → x ∈ (y ∷ ys)
+  tail : ∀{y ys} → x ∈ ys → x ∈ (y ∷ ys)
 
-  data _∈_ (x : A) : List A → Set where
-    head : ∀{y ys} → x ≡ y  → x ∈ (y ∷ ys)
-    tail : ∀{y ys} → x ∈ ys → x ∈ (y ∷ ys)
+data _∉_ {A : Set} (x : A) : List A → Set where
+  empty : x ∉ []
+  notat : ∀{y ys} → x ≢ y → x ∉ ys → x ∉ (y ∷ ys)
