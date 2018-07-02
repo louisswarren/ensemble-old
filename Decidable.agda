@@ -12,23 +12,14 @@ data Dec (A : Set) : Set where
   yes :   A → Dec A
   no  : ¬ A → Dec A
 
-
-data isYes {A : Set} : Dec A → Set where
-  since : (x : A) → isYes (yes x)
-
-yesIsYes : {A : Set}{a : A}{x : Dec A} → x ≡ (yes a) → isYes x
-yesIsYes {_} {a} refl = since a
-
-
-data isNo {A : Set} : Dec A → Set where
-  since : (x : ¬ A) → isNo (no x)
-
-noIsNo : {A : Set}{a : ¬ A}{x : Dec A} → x ≡ (no a) → isNo x
-noIsNo {_} {a} refl = since a
-
-
 Decidable : {A : Set} → (A → Set) → Set
 Decidable P = ∀ x → Dec (P x)
 
 Decidable≡ : Set → Set
 Decidable≡ A = (x y : A) → Dec (x ≡ y)
+
+isYes : {A : Set} → {f : A → Set} → Decidable f → A → Set
+isYes {_} {f} P x = f x
+
+isNo : {A : Set} → {f : A → Set} → Decidable f → A → Set
+isNo {_} {f} P x = ¬(f x)

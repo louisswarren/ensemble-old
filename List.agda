@@ -18,5 +18,5 @@ record Membership {A : Set} : Set where
     _≟_ : Decidable≡ A
 
   data _∈_ (x : A) : List A → Set where
-    head : ∀{y ys} → isYes (x ≟ y) → x ∈ (y ∷ ys)
-    tail : ∀{y ys} → x ∈ ys        → x ∈ (y ∷ ys)
+    head : ∀{y ys} → x ≡ y  → x ∈ (y ∷ ys)
+    tail : ∀{y ys} → x ∈ ys → x ∈ (y ∷ ys)
