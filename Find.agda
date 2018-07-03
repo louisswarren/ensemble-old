@@ -1,6 +1,5 @@
 module Find where
 
-open import All
 open import Decidable
 open import Functools
 open import List
