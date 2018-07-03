@@ -15,16 +15,23 @@ data Ensemble {A : Set} (_≟_ : Decidable≡ A) : Set where
   _-_ : Ensemble _≟_ → A            → Ensemble _≟_
   _∪_ : Ensemble _≟_ → Ensemble _≟_ → Ensemble _≟_
 
-data All_,_∖_ {A : Set} {_≟_ : Decidable≡ A} (P : A → Set) : Ensemble _≟_ → List A → Set where
-  ∅ : ∀{αs xs}   → All P , αs ∖ xs
-  _∷_ : ∀{αs xs α} → P α → All P , αs ∖ xs → All P , (α ∷ αs) ∖ xs
 
+data All_⟨_∖_⟩ {A : Set} {_≟_ : Decidable≡ A} (P : A → Set) : Ensemble _≟_ → List A → Set where
+  ∅      : ∀{αs xs}    → All P ⟨ αs ∖ xs ⟩
+  _∷_    : ∀{αs xs α}  → P α      → All P ⟨ αs ∖ xs ⟩ → All P ⟨ (α ∷ αs) ∖ xs ⟩
+  _-∷_   : ∀{αs xs α}  → α [∈] xs → All P ⟨ αs ∖ xs ⟩ → All P ⟨ (α ∷ αs) ∖ xs ⟩
+  delete : ∀{αs xs x}  → All P ⟨ αs ∖ (x ∷ xs) ⟩ → All P ⟨ (αs - x) ∖ xs ⟩
+  _∪_    : ∀{αs βs xs} → All P ⟨ αs ∖ xs ⟩ → All P ⟨ βs ∖ xs ⟩ → All P ⟨ (αs ∪ βs) ∖ xs ⟩
 
 All : {A : Set} {_≟_ : Decidable≡ A} → (P : A → Set) → Ensemble _≟_ → Set
-All P αs = All P , αs ∖ []
+All P αs = All P ⟨ αs ∖ [] ⟩
 
-_∈_∖_ : {A : Set} {_≟_ : Decidable≡ A} → A → Ensemble _≟_ → List A → Set
-α ∈ αs ∖ xs = ?
+
+data Any_⟨_∖_⟩ {A : Set} {_≟_ : Decidable≡ A} (P : A → Set) : Ensemble _≟_ → List A → Set where
+
+Any : {A : Set} {_≟_ : Decidable≡ A} → (P : A → Set) → Ensemble _≟_ → Set
+Any P αs = Any P ⟨ αs ∖ [] ⟩
+
 
 _∈_ : {A : Set} {_≟_ : Decidable≡ A} → (α : A) → Ensemble _≟_ → Set
-α ∈ αs = α ∈ αs ∖ []
+α ∈ αs = Any (α ≡_) αs
