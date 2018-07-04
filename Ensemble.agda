@@ -1,10 +1,16 @@
 open import Agda.Builtin.Equality
 
 open import Decidable
-open import List renaming ( _∈_ to _[∈]_ ;
-                            _∉_ to _[∉]_ ;
-                            All to All[] ;
-                            Any to Any[] )
+open import List
+  renaming (
+    _∈_ to _[∈]_ ;
+    _∉_ to _[∉]_ ;
+    All to All[] ;
+    Any to Any[] )
+  hiding (
+    thm:∉→¬∈ ;
+    thm:¬∈→∉ )
+
 
 -- An ensemble is like a decidable finite set, but we do not define a
 -- comprehension constructor.
@@ -41,3 +47,14 @@ Any P αs = Any P ⟨ αs ∖ [] ⟩
 
 _∈_ : {A : Set} {_≟_ : Decidable≡ A} → (α : A) → Ensemble _≟_ → Set
 α ∈ αs = Any (α ≡_) αs
+
+_∉_ : {A : Set} {_≟_ : Decidable≡ A} → (α : A) → Ensemble _≟_ → Set
+α ∉ αs = All (α ≢_) αs
+
+
+-- Check that _∉_ is equivalent to ¬ ∘ _∈_
+thm:∉→¬∈ : {A : Set} {_≟_ : Decidable≡ A} → (x : A) → (xs : Ensemble _≟_) → x ∉ xs → ¬(x ∈ xs)
+thm:∉→¬∈ x xs x∉xs x∈xs = ?
+
+thm:¬∈→∉ : {A : Set} {_≟_ : Decidable≡ A} → (x : A) → (xs : Ensemble _≟_) → ¬(x ∈ xs) → x ∉ xs
+thm:¬∈→∉ x xs ¬x∈xs = ?
