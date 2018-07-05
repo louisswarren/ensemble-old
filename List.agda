@@ -45,24 +45,24 @@ x ∉ xs = All (x ≢_) xs
 
 -- Check that _∉_ is equivalent to ¬ ∘ _∈_
 
-thm:∉→¬∈ : {A : Set} → (x : A) → (xs : List A) → x ∉ xs → ¬(x ∈ xs)
-thm:∉→¬∈ x xs       (x≢x ∷ x∉xs) [ refl ]   = x≢x refl
-thm:∉→¬∈ x (_ ∷ xs) (x≢y ∷ x∉xs) (y ∷ x∈xs) = thm:∉→¬∈ x xs x∉xs x∈xs
+∉→¬∈ : {A : Set} → (x : A) → (xs : List A) → x ∉ xs → ¬(x ∈ xs)
+∉→¬∈ x xs       (x≢x ∷ x∉xs) [ refl ]   = x≢x refl
+∉→¬∈ x (_ ∷ xs) (x≢y ∷ x∉xs) (y ∷ x∈xs) = ∉→¬∈ x xs x∉xs x∈xs
 
-thm:¬∈→∉ : {A : Set} → (x : A) → (xs : List A) → ¬(x ∈ xs) → x ∉ xs
-thm:¬∈→∉ x [] ¬x∈xs = []
-thm:¬∈→∉ x (y ∷ xs) ¬x∈xs = (λ x≡y → ¬x∈xs [ x≡y ])
-                            ∷ thm:¬∈→∉ x xs λ anyxs → ¬x∈xs (∈tail anyxs)
+¬∈→∉ : {A : Set} → (x : A) → (xs : List A) → ¬(x ∈ xs) → x ∉ xs
+¬∈→∉ x [] ¬x∈xs = []
+¬∈→∉ x (y ∷ xs) ¬x∈xs = (λ x≡y → ¬x∈xs [ x≡y ])
+                        ∷ ¬∈→∉ x xs λ anyxs → ¬x∈xs (∈tail anyxs)
 
 -- Decidability of _∈_ follows from decidability of _≡_
 
 Decidable∈ : Set → Set
 Decidable∈ A = (x : A) → (xs : List A) → Dec (x ∈ xs)
 
-private lem:¬∈split : {A : Set} {x y : A} {xs : List A}
+private lemma:¬∈split : {A : Set} {x y : A} {xs : List A}
                       → x ≢ y → ¬(x ∈ xs) → ¬(x ∈ (y ∷ xs))
-lem:¬∈split x≢y ¬x∈xs [ x≡y ]    = x≢y x≡y
-lem:¬∈split x≢y ¬x∈xs (x ∷ x∈xs) = ¬x∈xs x∈xs
+lemma:¬∈split x≢y ¬x∈xs [ x≡y ]    = x≢y x≡y
+lemma:¬∈split x≢y ¬x∈xs (x ∷ x∈xs) = ¬x∈xs x∈xs
 
 decide∈ : {A : Set} → Decidable≡ A → Decidable∈ A
 decide∈ _≟_ x [] = no (λ ())
@@ -70,7 +70,7 @@ decide∈ _≟_ x (y ∷ xs) with x ≟ y
 ...                    | yes x≡y = yes [ x≡y ]
 ...                    | no  x≢y with decide∈ _≟_ x xs
 ...                              | yes x∈xs = yes (y ∷ x∈xs)
-...                              | no ¬x∈xs = no  (lem:¬∈split x≢y ¬x∈xs)
+...                              | no ¬x∈xs = no  (lemma:¬∈split x≢y ¬x∈xs)
 
 -- Useful theorems
 all++ : {A : Set} {xs ys : List A} {P : A → Set}
