@@ -3,13 +3,14 @@ open import Agda.Builtin.Equality
 open import Decidable
 open import List
   renaming (
-    _∈_ to _[∈]_ ;
-    _∉_ to _[∉]_ ;
-    All to All[] ;
-    Any to Any[] )
-  hiding (
-    thm:∉→¬∈ ;
-    thm:¬∈→∉ )
+    _∈_      to _[∈]_        ;
+    _∉_      to _[∉]_        ;
+    All      to All[]        ;
+    Any      to Any[]        ;
+    thm:∉→¬∈ to thm:[∉]→¬[∈] ;
+    thm:¬∈→∉ to thm:¬[∈]→[∉] )
+
+open import Functools
 
 
 -- An ensemble is like a decidable finite set, but we do not define a
@@ -40,9 +41,20 @@ data Any_⟨_∖_⟩ {A : Set} {_≟_ : Decidable≡ A} (P : A → Set) : Ensemb
   _∣∪_  : ∀{βs xs}   → ∀ αs → Any P ⟨ βs ∖ xs ⟩     → Any P ⟨ αs ∪ βs ∖ xs ⟩
   _∪∣_  : ∀{αs xs}   → Any P ⟨ αs ∖ xs ⟩     → ∀ βs → Any P ⟨ αs ∪ βs ∖ xs ⟩
 
-
 Any : {A : Set} {_≟_ : Decidable≡ A} → (P : A → Set) → Ensemble _≟_ → Set
 Any P αs = Any P ⟨ αs ∖ [] ⟩
+
+
+--thm:all¬→¬any : {A : Set} → {_≟_ : Decidable≡ A} → (P : A → Set) → ∀ αs xs → All (¬_ ∘ P) ⟨ αs ∖ xs ⟩ → ¬(Any P ⟨ αs ∖ xs ⟩)
+--thm:all¬→¬any P αs xs all¬ any = ?
+
+thm:¬any→all¬ : {A : Set} → {_≟_ : Decidable≡ A} → (P : A → Set) → (αs : Ensemble _≟_) → ∀ xs → ¬(Any P ⟨ αs ∖ xs ⟩) → All (¬_ ∘ P) ⟨ αs ∖ xs ⟩
+thm:¬any→all¬ P ∅ xs ¬any = ∅
+thm:¬any→all¬ {_} {_≟_} P (α ∷ αs) xs ¬any with decide∈ _≟_ α xs
+thm:¬any→all¬ {_} {_≟_} P (α ∷ αs) xs ¬any | yes α∈xs = α∈xs -∷ thm:¬any→all¬ P αs xs λ any → ¬any (α ∷ any)
+thm:¬any→all¬ {_} {_≟_} P (α ∷ αs) xs ¬any | no ¬α∈xs = (λ Pα → ¬any [ Pα , thm:¬[∈]→[∉] α xs ¬α∈xs ]) ∷ thm:¬any→all¬ P αs xs λ any → ¬any (α ∷ any)
+thm:¬any→all¬ P (αs - α) xs ¬any = α ~ thm:¬any→all¬ P αs (α ∷ xs) λ any → ¬any (α ~ any)
+thm:¬any→all¬ P (αs ∪ βs) xs ¬any = thm:¬any→all¬ P αs xs (λ z → ¬any (z ∪∣ βs)) ∪ thm:¬any→all¬ P βs xs λ z → ¬any (αs ∣∪ z)
 
 
 _∈_ : {A : Set} {_≟_ : Decidable≡ A} → (α : A) → Ensemble _≟_ → Set
@@ -52,9 +64,9 @@ _∉_ : {A : Set} {_≟_ : Decidable≡ A} → (α : A) → Ensemble _≟_ → S
 α ∉ αs = All (α ≢_) αs
 
 
--- Check that _∉_ is equivalent to ¬ ∘ _∈_
-thm:∉→¬∈ : {A : Set} {_≟_ : Decidable≡ A} → (x : A) → (xs : Ensemble _≟_) → x ∉ xs → ¬(x ∈ xs)
-thm:∉→¬∈ x xs x∉xs x∈xs = ?
-
+---- Check that _∉_ is equivalent to ¬ ∘ _∈_
+--thm:∉→¬∈ : {A : Set} {_≟_ : Decidable≡ A} → (x : A) → (xs : Ensemble _≟_) → x ∉ xs → ¬(x ∈ xs)
+--thm:∉→¬∈ x xs x∉xs x∈xs = ?
+--
 thm:¬∈→∉ : {A : Set} {_≟_ : Decidable≡ A} → (x : A) → (xs : Ensemble _≟_) → ¬(x ∈ xs) → x ∉ xs
-thm:¬∈→∉ x xs ¬x∈xs = ?
+thm:¬∈→∉ x xs ¬x∈xs = thm:¬any→all¬ (_≡_ x) xs [] ¬x∈xs
