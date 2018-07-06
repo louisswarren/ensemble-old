@@ -46,12 +46,17 @@ data Any_⟨_∖_⟩ {A : Set} {_≟_ : Decidable≡ A} (P : A → Set) : Ensemb
 Any : {A : Set} {_≟_ : Decidable≡ A} → (P : A → Set) → Ensemble _≟_ → Set
 Any P αs = Any P ⟨ αs ∖ [] ⟩
 
+_∈_∖_ : {A : Set} {_≟_ : Decidable≡ A} → A → Ensemble _≟_ → List A → Set
+α ∈ αs ∖ xs = Any (α ≡_) ⟨ αs ∖ xs ⟩
 
-_∈_ : {A : Set} {_≟_ : Decidable≡ A} → (α : A) → Ensemble _≟_ → Set
-α ∈ αs = Any (α ≡_) αs
+_∈_ : {A : Set} {_≟_ : Decidable≡ A} → A → Ensemble _≟_ → Set
+α ∈ αs = α ∈ αs ∖ []
 
-_∉_ : {A : Set} {_≟_ : Decidable≡ A} → (α : A) → Ensemble _≟_ → Set
-α ∉ αs = All (α ≢_) αs
+_∉_∖_ : {A : Set} {_≟_ : Decidable≡ A} → A → Ensemble _≟_ → List A → Set
+α ∉ αs ∖ xs = All α ≢_ ⟨ αs ∖ xs ⟩
+
+_∉_ : {A : Set} {_≟_ : Decidable≡ A} → A → Ensemble _≟_ → Set
+α ∉ αs = α ∉ αs ∖ []
 
 
 -- Prove that ∀α ¬Pα is equivalent to ¬∃α Pα
@@ -89,24 +94,121 @@ all¬→¬any P (αs ∪ βs) xs (allα¬ ∪ allβ¬) (any ∪∣ .βs)  = all�
 ¬∈→∉ x xs ¬x∈xs = ¬any→all¬ (_≡_ x) xs [] ¬x∈xs
 
 
--- Decidability of _∈_ follows from decidability of _≡_
+-- All and Any are decidable
+-- Decidability of _∈_ follows from decidability of _≡_.
+
+-- These proofs need a total cleanup, mostly just generated with agda's auto
+
+private lemma:all∪α : {A : Set} {_≟_ : Decidable≡ A} {f : A → Set}
+                    → (P : Decidable f) → (αs βs : Ensemble _≟_) → (xs : List A)
+                    → ¬(All f ⟨ αs ∖ xs ⟩) → ¬(All f ⟨ αs ∪ βs ∖ xs ⟩)
+lemma:all∪α P αs βs xs ¬allαs (allαs ∪ allβs) = ¬allαs allαs
+
+private lemma:all∪β : {A : Set} {_≟_ : Decidable≡ A} {f : A → Set}
+                    → (P : Decidable f) → (αs βs : Ensemble _≟_) → (xs : List A)
+                    → ¬(All f ⟨ βs ∖ xs ⟩) → ¬(All f ⟨ αs ∪ βs ∖ xs ⟩)
+lemma:all∪β P αs βs xs ¬allβs (allαs ∪ allβs) = ¬allβs allβs
+
+
+decidableAll : {A : Set} {_≟_ : Decidable≡ A} {f : A → Set}
+               → (P : Decidable f) → (αs : Ensemble _≟_) → (xs : List A)
+               → Dec (All f ⟨ αs ∖ xs ⟩)
+decidableAll P ∅         xs = yes ∅
+decidableAll P (α ∷ αs)  xs with P α
+decidableAll P (α ∷ αs) xs | yes x with decidableAll P αs xs
+decidableAll P (α ∷ αs) xs | yes x | yes x₁ = yes (x ∷ x₁)
+decidableAll {_} {_≟_} {f} P (α ∷ αs) xs | yes x | no x₁ = no ¬all
+                                             where
+                                             ¬all : (All f ⟨ α ∷ αs ∖ xs ⟩) → ⊥
+                                             ¬all (x₂ ∷ all) = x₁ all
+                                             ¬all (x₂ -∷ all) = x₁ all
+decidableAll {_} {_≟_} {f} P (α ∷ αs) xs | no ¬fα with decide[∈] _≟_ α xs
+decidableAll {_} {_≟_} {f} P (α ∷ αs) xs | no ¬fα | yes x with decidableAll P αs xs
+decidableAll {_} {_≟_} {f} P (α ∷ αs) xs | no ¬fα | yes x | yes x₁ = yes (x -∷ x₁)
+decidableAll {_} {_≟_} {f} P (α ∷ αs) xs | no ¬fα | yes x | no x₁ = no ¬all
+                                                                    where
+                                                                    ¬all : (x₂ : All f ⟨ α ∷ αs ∖ xs ⟩) → ⊥
+                                                                    ¬all (x₂ ∷ all) = ¬fα x₂
+                                                                    ¬all (x₂ -∷ all) = x₁ all
+decidableAll {_} {_≟_} {f} P (α ∷ αs) xs | no ¬fα | no x = no ¬all
+                                    where
+                                    ¬all : ¬(All f ⟨ α ∷ αs ∖ xs ⟩)
+                                    ¬all (x₁ ∷ p) = ¬fα x₁
+                                    ¬all (x₁ -∷ p) = x x₁
+decidableAll P (αs - α)  xs with decidableAll P αs (α ∷ xs)
+decidableAll P (αs - α) xs | yes x = yes (α ~ x)
+decidableAll {_} {_} {f} P (αs - α) xs | no x = no ¬all
+                                    where
+                                    ¬all : (All f ⟨ αs - α ∖ xs ⟩) → ⊥
+                                    ¬all (x₁ ~ all) = x all
+decidableAll P (αs ∪ βs) xs with decidableAll P αs xs
+decidableAll P (αs ∪ βs) xs | yes allαs with decidableAll P βs xs
+decidableAll P (αs ∪ βs) xs | yes allαs | yes allβs = yes (allαs ∪ allβs)
+decidableAll P (αs ∪ βs) xs | yes allαs | no ¬allβs = no (lemma:all∪β P αs βs xs ¬allβs)
+decidableAll P (αs ∪ βs) xs | no ¬allαs = no (lemma:all∪α P αs βs xs ¬allαs)
 
 Decidable∈ : {A : Set} → (Decidable≡ A) → Set
 Decidable∈ {A} _≟_ = (α : A) → (αs : Ensemble _≟_) → Dec (α ∈ αs)
 
-private lemma:¬∈∪ : ∀{A} {_≟_ : Decidable≡ A} {α : A} {αs βs : Ensemble _≟_}
-                    → ¬(α ∈ αs) → ¬(α ∈ βs) → ¬(α ∈ (αs ∪ βs))
+
+
+decidableAny : {A : Set} {_≟_ : Decidable≡ A} {f : A → Set}
+               → (P : Decidable f) → (αs : Ensemble _≟_) → (xs : List A)
+               → Dec (Any f ⟨ αs ∖ xs ⟩)
+decidableAny P ∅ xs = no (λ ())
+decidableAny P (x ∷ αs) xs with P x
+decidableAny {_} {_≟_} P (x ∷ αs) xs | yes x₁ with decide[∈] _≟_ x xs
+decidableAny {_} {_≟_} P (x ∷ αs) xs | yes x₁ | yes x₂ with decidableAny P αs xs
+decidableAny {_} {_≟_} P (x ∷ αs) xs | yes x₁ | yes x₂ | yes x₃ = yes (x ∷ x₃)
+decidableAny {_} {_≟_} {f} P (x ∷ αs) xs | yes x₁ | yes x₂ | no x₃ = no ¬any
+                                                                     where
+                                                                     ¬any : (Any f ⟨ x ∷ αs ∖ xs ⟩) → ⊥
+                                                                     ¬any [ x₅ , x₄ ] = [∉]→¬[∈] x xs x₄ x₂
+                                                                     ¬any (α ∷ any) = x₃ any
+decidableAny {_} {_≟_} P (x ∷ αs) xs | yes x₁ | no x₂ = yes [ x₁ , ¬[∈]→[∉] x xs x₂ ]
+decidableAny P (x ∷ αs) xs | no x₁ with decidableAny P αs xs
+decidableAny P (x ∷ αs) xs | no x₁ | yes x₂ = yes (x ∷ x₂)
+decidableAny {_} {_} {f} P (x ∷ αs) xs | no x₁ | no x₂ = no ¬any
+                                                         where
+                                                         ¬any : (x₃ : Any f ⟨ x ∷ αs ∖ xs ⟩) → ⊥
+                                                         ¬any [ x , x₃ ] = x₁ x
+                                                         ¬any (α ∷ any) = x₂ any
+decidableAny P (αs - x) xs with decidableAny P αs (x ∷ xs)
+decidableAny P (αs - x) xs | yes x₁ = yes (x ~ x₁)
+decidableAny {_} {_} {f} P (αs - x) xs | no x₁ = no ¬any
+                                     where
+                                     ¬any : (x₂ : Any f ⟨ αs - x ∖ xs ⟩) → ⊥
+                                     ¬any (x ~ any) = x₁ any
+decidableAny P (αs ∪ βs) xs with decidableAny P αs xs
+decidableAny P (αs ∪ βs) xs | yes x = yes (x ∪∣ βs)
+decidableAny P (αs ∪ βs) xs | no x with decidableAny P βs xs
+decidableAny P (αs ∪ βs) xs | no x | yes x₁ = yes (αs ∣∪ x₁)
+decidableAny {_} {_} {f} P (αs ∪ βs) xs | no x | no x₁ = no ¬any
+                                             where
+                                             ¬any : (Any f ⟨ αs ∪ βs ∖ xs ⟩) → ⊥
+                                             ¬any (αs ∣∪ any) = x₁ any
+                                             ¬any (any ∪∣ βs) = x any
+
+--private lemma:¬∈∪ : ∀{A} {_≟_ : Decidable≡ A} {α : A} {αs βs : Ensemble _≟_}
+--                    → ¬(α ∈ αs) → ¬(α ∈ βs) → ¬(α ∈ (αs ∪ βs))
+--lemma:¬∈∪ ¬α∈αs ¬α∈βs (αs ∣∪ α∈∪) = ¬α∈βs α∈∪
+--lemma:¬∈∪ ¬α∈αs ¬α∈βs (α∈∪ ∪∣ βs) = ¬α∈αs α∈∪
+
+private lemma:¬∈∪ : ∀{A} {_≟_ : Decidable≡ A}
+                    {α : A} {αs βs : Ensemble _≟_} {xs : List A}
+                    → ¬(α ∈ αs ∖ xs) → ¬(α ∈ βs ∖ xs) → ¬(α ∈ (αs ∪ βs) ∖ xs)
 lemma:¬∈∪ ¬α∈αs ¬α∈βs (αs ∣∪ α∈∪) = ¬α∈βs α∈∪
 lemma:¬∈∪ ¬α∈αs ¬α∈βs (α∈∪ ∪∣ βs) = ¬α∈αs α∈∪
 
-decide∈ : {A : Set} → (_≟_ : Decidable≡ A) → Decidable∈ _≟_
-decide∈ _≟_ α ∅ = no (λ ())
-decide∈ _≟_ α (β ∷ αs) = {!   !}
-decide∈ _≟_ α (αs - x) with α ≟ x
-decide∈ _≟_ α (αs - x) | yes α≡x = no {!   !}
-decide∈ _≟_ α (αs - x) | no  α≢x = no {!   !}
-decide∈ _≟_ α (αs ∪ βs) with decide∈ _≟_ α αs
-decide∈ _≟_ α (αs ∪ βs) | yes α∈αs = yes (α∈αs ∪∣ βs)
-decide∈ _≟_ α (αs ∪ βs) | no ¬α∈αs with decide∈ _≟_ α βs
-decide∈ _≟_ α (αs ∪ βs) | no ¬α∈αs | yes α∈βs = yes (αs ∣∪ α∈βs)
-decide∈ _≟_ α (αs ∪ βs) | no ¬α∈αs | no ¬α∈βs = no (lemma:¬∈∪ ¬α∈αs ¬α∈βs)
+--decide∈∖ : {A : Set} → (_≟_ : Decidable≡ A) → (α : A) → (αs : Ensemble _≟_) → (xs : List A) → Dec (α ∈ αs ∖ xs)
+--decide∈∖ _≟_ α ∅         xs = no (λ ())
+--decide∈∖ _≟_ α (β ∷ αs)  xs = {!   !}
+--decide∈∖ _≟_ α (αs - β)  xs with α
+--decide∈∖ _≟_ α (αs ∪ βs) xs with decide∈∖ _≟_ α αs xs
+--...                         | yes ∈αs = yes (∈αs ∪∣ βs)
+--...                         | no ¬∈αs with decide∈∖ _≟_ α βs xs
+--...                                   | yes ∈βs = yes (αs ∣∪ ∈βs)
+--...                                   | no ¬∈βs = no (lemma:¬∈∪ ¬∈αs ¬∈βs)
+--
+
+
