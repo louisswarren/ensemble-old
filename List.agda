@@ -59,18 +59,17 @@ x ∉ xs = All (x ≢_) xs
 Decidable∈ : Set → Set
 Decidable∈ A = (x : A) → (xs : List A) → Dec (x ∈ xs)
 
-private lemma:¬∈split : {A : Set} {x y : A} {xs : List A}
-                      → x ≢ y → ¬(x ∈ xs) → ¬(x ∈ (y ∷ xs))
-lemma:¬∈split x≢y ¬x∈xs [ x≡y ]    = x≢y x≡y
-lemma:¬∈split x≢y ¬x∈xs (x ∷ x∈xs) = ¬x∈xs x∈xs
-
 decide∈ : {A : Set} → Decidable≡ A → Decidable∈ A
 decide∈ _≟_ x [] = no (λ ())
 decide∈ _≟_ x (y ∷ xs) with x ≟ y
 ...                    | yes x≡y = yes [ x≡y ]
 ...                    | no  x≢y with decide∈ _≟_ x xs
 ...                              | yes x∈xs = yes (y ∷ x∈xs)
-...                              | no ¬x∈xs = no  (lemma:¬∈split x≢y ¬x∈xs)
+...                              | no ¬x∈xs = no ¬x∈y∷xs
+                                              where
+                                              ¬x∈y∷xs : ¬(x ∈ (y ∷ xs))
+                                              ¬x∈y∷xs [ x≡y ]     = x≢y x≡y
+                                              ¬x∈y∷xs (x ∷ x∈xs ) = ¬x∈xs x∈xs
 
 -- Useful theorems
 all++ : {A : Set} {xs ys : List A} {P : A → Set}
