@@ -189,26 +189,7 @@ decidableAny {_} {_} {f} P (αs ∪ βs) xs | no x | no x₁ = no ¬any
                                              ¬any (αs ∣∪ any) = x₁ any
                                              ¬any (any ∪∣ βs) = x any
 
---private lemma:¬∈∪ : ∀{A} {_≟_ : Decidable≡ A} {α : A} {αs βs : Ensemble _≟_}
---                    → ¬(α ∈ αs) → ¬(α ∈ βs) → ¬(α ∈ (αs ∪ βs))
---lemma:¬∈∪ ¬α∈αs ¬α∈βs (αs ∣∪ α∈∪) = ¬α∈βs α∈∪
---lemma:¬∈∪ ¬α∈αs ¬α∈βs (α∈∪ ∪∣ βs) = ¬α∈αs α∈∪
-
-private lemma:¬∈∪ : ∀{A} {_≟_ : Decidable≡ A}
-                    {α : A} {αs βs : Ensemble _≟_} {xs : List A}
-                    → ¬(α ∈ αs ∖ xs) → ¬(α ∈ βs ∖ xs) → ¬(α ∈ (αs ∪ βs) ∖ xs)
-lemma:¬∈∪ ¬α∈αs ¬α∈βs (αs ∣∪ α∈∪) = ¬α∈βs α∈∪
-lemma:¬∈∪ ¬α∈αs ¬α∈βs (α∈∪ ∪∣ βs) = ¬α∈αs α∈∪
-
---decide∈∖ : {A : Set} → (_≟_ : Decidable≡ A) → (α : A) → (αs : Ensemble _≟_) → (xs : List A) → Dec (α ∈ αs ∖ xs)
---decide∈∖ _≟_ α ∅         xs = no (λ ())
---decide∈∖ _≟_ α (β ∷ αs)  xs = {!   !}
---decide∈∖ _≟_ α (αs - β)  xs with α
---decide∈∖ _≟_ α (αs ∪ βs) xs with decide∈∖ _≟_ α αs xs
---...                         | yes ∈αs = yes (∈αs ∪∣ βs)
---...                         | no ¬∈αs with decide∈∖ _≟_ α βs xs
---...                                   | yes ∈βs = yes (αs ∣∪ ∈βs)
---...                                   | no ¬∈βs = no (lemma:¬∈∪ ¬∈αs ¬∈βs)
---
-
-
+decide∈ : {A : Set} → (_≟_ : Decidable≡ A) → (α : A) → (αs : Ensemble _≟_) → Dec (α ∈ αs)
+decide∈ _≟_ α αs with decidableAny (α ≟_) αs []
+decide∈ _≟_ α αs | yes x = yes x
+decide∈ _≟_ α αs | no x = no x
