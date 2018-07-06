@@ -193,3 +193,24 @@ decide∈ : {A : Set} → (_≟_ : Decidable≡ A) → (α : A) → (αs : Ensem
 decide∈ _≟_ α αs with decidableAny (α ≟_) αs []
 decide∈ _≟_ α αs | yes x = yes x
 decide∈ _≟_ α αs | no x = no x
+
+
+_⊂_ : {A : Set} {_≟_ : Decidable≡ A} → (αs βs : Ensemble _≟_) → Set
+αs ⊂ βs = ∀ x → x ∈ αs → x ∈ βs
+
+isEmpty : {A : Set} {_≟_ : Decidable≡ A} → (αs : Ensemble _≟_) → Set
+isEmpty αs = αs ⊂ ∅
+
+uninhabited : {A : Set} {_≟_ : Decidable≡ A} → (αs : Ensemble _≟_) → Set
+uninhabited αs = All (λ _ → ⊥) αs
+
+--decidableUninhabited : {A : Set} → {_≟_ : Decidable≡ A}
+--                       → (αs : Ensemble _≟_) → Dec (uninhabited αs)
+--decidableUninhabited ∅ = yes ∅
+--decidableUninhabited (α ∷ αs) = no φ
+--                                where
+--                                φ : ¬(All (λ _ → ⊥) (α ∷ αs))
+--                                φ (x ∷ p) = x
+--                                φ (() -∷ p)
+--decidableUninhabited (αs - x) = {! decidableUninhabited  !}
+--decidableUninhabited (αs ∪ βs) = {!   !}
