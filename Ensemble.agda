@@ -86,6 +86,22 @@ all¬→¬any P (αs ∪ βs) xs (allα¬ ∪ allβ¬) (any ∪∣ .βs)  = all�
                                     ∪ ¬any→all¬ P βs xs λ z → ¬any (αs ∣∪ z)
 
 
+-- Some useful lemmae for "lifting" all and any
+¬all∪∣ : {A : Set} {_≟_ : Decidable≡ A}
+         → {P : A → Set} → {αs βs : Ensemble _≟_} → {xs : List A}
+         → ¬(All P ⟨ αs ∖ xs ⟩) → ¬(All P ⟨ αs ∪ βs ∖ xs ⟩)
+¬all∪∣ {_} {_≟_} {P} {αs} {βs} {xs} ¬all (allα ∪ allβ) = ¬all allα
+
+¬all∣∪ : {A : Set} {_≟_ : Decidable≡ A}
+         → {P : A → Set} → {αs βs : Ensemble _≟_} → {xs : List A}
+         → ¬(All P ⟨ βs ∖ xs ⟩) → ¬(All P ⟨ αs ∪ βs ∖ xs ⟩)
+¬all∣∪ {_} {_≟_} {P} {αs} {βs} {xs} ¬all (allα ∪ allβ) = ¬all allβ
+
+¬all- : {A : Set} {_≟_ : Decidable≡ A}
+         → {P : A → Set} → {α : A} → {αs : Ensemble _≟_} → {xs : List A}
+         → ¬(All P ⟨ αs ∖ α ∷ xs ⟩) → ¬(All P ⟨ αs - α ∖ xs ⟩)
+¬all- {_} {_≟_} {P} {.x} {αs} {xs} ¬all (x ~ all) = ¬all all
+
 ---- Check that _∉_ is equivalent to ¬ ∘ _∈_
 ∉→¬∈ : {A : Set} {_≟_ : Decidable≡ A} → (x : A) → (xs : Ensemble _≟_) → x ∉ xs → ¬(x ∈ xs)
 ∉→¬∈ x xs x∉xs = all¬→¬any (_≡_ x) xs [] x∉xs
@@ -201,16 +217,38 @@ _⊂_ : {A : Set} {_≟_ : Decidable≡ A} → (αs βs : Ensemble _≟_) → Se
 isEmpty : {A : Set} {_≟_ : Decidable≡ A} → (αs : Ensemble _≟_) → Set
 isEmpty αs = αs ⊂ ∅
 
+uninhabited_∖_ : {A : Set} {_≟_ : Decidable≡ A} → (αs : Ensemble _≟_) → (xs : List A) → Set
+uninhabited αs ∖ xs = All (λ _ → ⊥) ⟨ αs ∖ xs ⟩
+
 uninhabited : {A : Set} {_≟_ : Decidable≡ A} → (αs : Ensemble _≟_) → Set
 uninhabited αs = All (λ _ → ⊥) αs
 
---decidableUninhabited : {A : Set} → {_≟_ : Decidable≡ A}
---                       → (αs : Ensemble _≟_) → Dec (uninhabited αs)
---decidableUninhabited ∅ = yes ∅
---decidableUninhabited (α ∷ αs) = no φ
---                                where
---                                φ : ¬(All (λ _ → ⊥) (α ∷ αs))
---                                φ (x ∷ p) = x
---                                φ (() -∷ p)
---decidableUninhabited (αs - x) = {! decidableUninhabited  !}
---decidableUninhabited (αs ∪ βs) = {!   !}
+decidableUninhabited_∖_ : {A : Set} → {_≟_ : Decidable≡ A}
+                       → (αs : Ensemble _≟_) → (xs : List A)
+                       → Dec (uninhabited αs ∖ xs)
+decidableUninhabited ∅ ∖ xs = yes ∅
+decidableUninhabited_∖_ {_} {_≟_} (α ∷ αs) xs with decide[∈] _≟_ α xs
+decidableUninhabited_∖_ {_} {_≟_} (α ∷ αs) xs | yes x with decidableUninhabited αs ∖ xs
+decidableUninhabited_∖_ {_} {_≟_} (α ∷ αs) xs | yes x | yes x₁ = yes (x -∷ x₁)
+decidableUninhabited_∖_ {_} {_≟_} (α ∷ αs) xs | yes x | no x₁ = no φ
+                                            where
+                                            φ : ¬(All (λ _ → ⊥) ⟨ α ∷ αs ∖ xs ⟩)
+                                            φ (x₂ ∷ all) = x₂
+                                            φ (x₂ -∷ all) = x₁ all
+decidableUninhabited_∖_ {_} {_≟_} (α ∷ αs) xs | no x = no φ
+                                            where
+                                            φ : ¬(All (λ _ → ⊥) ⟨ α ∷ αs ∖ xs ⟩)
+                                            φ (x₁ ∷ all) = x₁
+                                            φ (x₁ -∷ all) = x x₁
+decidableUninhabited αs - α ∖ xs with decidableUninhabited αs ∖ (α ∷ xs)
+(decidableUninhabited αs - α ∖ xs) | yes x = yes (α ~ x)
+(decidableUninhabited αs - α ∖ xs) | no x = no (¬all- x)
+decidableUninhabited αs ∪ βs ∖ xs with decidableUninhabited αs ∖ xs
+(decidableUninhabited αs ∪ βs ∖ xs) | yes x with decidableUninhabited βs ∖ xs
+(decidableUninhabited αs ∪ βs ∖ xs) | yes x | yes x₁ = yes (x ∪ x₁)
+(decidableUninhabited αs ∪ βs ∖ xs) | yes x | no x₁ = no (¬all∣∪ x₁)
+(decidableUninhabited αs ∪ βs ∖ xs) | no x = no (¬all∪∣ x)
+
+decidableUninhabited : {A : Set} → {_≟_ : Decidable≡ A}
+                       → (αs : Ensemble _≟_) → Dec (uninhabited αs)
+decidableUninhabited αs = decidableUninhabited αs ∖ []
