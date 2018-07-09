@@ -26,3 +26,9 @@ e x (.1 ~ (.1 ∷ ()))
 
 a : uninhabited omo
 a = 1 ~ ([ refl ] -∷ ∅)
+
+au : Dec (uninhabited omo)
+au = decidableUninhabited omo
+
+r : au ≡ (yes a)
+r = refl
