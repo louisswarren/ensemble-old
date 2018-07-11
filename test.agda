@@ -19,16 +19,11 @@ natdec (suc n) (suc m)  with natdec n m
 omo : Ensemble natdec
 omo = (1 ∷ ∅) - 1
 
-e : isEmpty omo
-e .1 (.1 ~ [ refl , x ∷ [] ]) with x refl
-e _ (_ ~ [ refl , x ∷ [] ]) | ()
-e x (.1 ~ (.1 ∷ ()))
-
-a : uninhabited omo
+a : Uninhabited omo
 a = 1 ~ ([ refl ] -∷ ∅)
 
-au : Dec (uninhabited omo)
-au = decidableUninhabited omo
+au : Dec (Uninhabited omo)
+au = uninhabited? omo
 
 r : au ≡ (yes a)
 r = refl
