@@ -198,32 +198,15 @@ decide∈ _≟_ α αs | yes any = yes any
 decide∈ _≟_ α αs | no ¬any = no ¬any
 
 
-Uninhabited_∖_ : {A : Set} {_≟_ : Decidable≡ A}
-                 → (αs : Ensemble _≟_) → (xs : List A) → Set
-Uninhabited αs ∖ xs = All (λ _ → ⊥) ⟨ αs ∖ xs ⟩
 
-Uninhabited : {A : Set} {_≟_ : Decidable≡ A} → (αs : Ensemble _≟_) → Set
-Uninhabited αs = All (λ _ → ⊥) αs
+_⊂_ : {A : Set} {_≟_ : Decidable≡ A} → (αs βs : Ensemble _≟_) → Set
+αs ⊂ βs = All (_∈ βs) αs
 
-uninhabited?_∖_ : {A : Set} → {_≟_ : Decidable≡ A}
-                  → (αs : Ensemble _≟_) → (xs : List A)
-                  → Dec (Uninhabited αs ∖ xs)
-uninhabited? ∅       ∖ xs = yes ∅
-uninhabited? α ∷ αs  ∖ xs with uninhabited? αs ∖ xs
-...                                   | no ¬unin = no (¬all∣∷ ¬unin)
-uninhabited?_∖_ {_} {_≟_} (α ∷ αs) xs | yes unin with decide[∈] _≟_ α xs
-...                                              | yes α∈xs = yes (α∈xs -∷ unin)
-...                                              | no ¬α∈xs = no (¬all∷∣ (λ t → t) ¬α∈xs)
-uninhabited? αs - α  ∖ xs with uninhabited? αs ∖ (α ∷ xs)
-...                       | yes unin = yes (α ~ unin)
-...                       | no ¬unin = no  (¬all- ¬unin)
-uninhabited? αs ∪ βs ∖ xs with uninhabited? αs ∖ xs
-...                       | no ¬αs∅ = no (¬all∪∣ ¬αs∅)
-...                       | yes αs∅ with uninhabited? βs ∖ xs
-...                                 | yes βs∅ = yes (αs∅ ∪ βs∅)
-...                                 | no ¬βs∅ = no  (¬all∣∪ ¬βs∅)
+_⊂?_ : {A : Set} {_≟_ : Decidable≡ A} → (αs βs : Ensemble _≟_) → Dec (αs ⊂ βs)
+_⊂?_ {A} {_≟_} αs βs = all? (λ x → any? _≟_ x ⟨ βs ∖ [] ⟩) ⟨ αs ∖ [] ⟩
 
+Empty : {A : Set} {_≟_ : Decidable≡ A} → (αs : Ensemble _≟_) → Set
+Empty αs = αs ⊂ ∅
 
-uninhabited? : {A : Set} {_≟_ : Decidable≡ A}
-               → (αs : Ensemble _≟_) → Dec (Uninhabited αs)
-uninhabited? αs = uninhabited? αs ∖ []
+empty? : {A : Set} {_≟_ : Decidable≡ A} → (αs : Ensemble _≟_) → Dec (Empty αs)
+empty? αs = all? (λ x → no (λ ())) ⟨ αs ∖ [] ⟩
