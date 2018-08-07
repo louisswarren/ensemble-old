@@ -21,6 +21,16 @@ data Any {A : Set} (P : A → Set) : List A → Set where
   [_] : ∀{xs} → ∀{x} → P x      → Any P (x ∷ xs)
   _∷_ : ∀{xs} → ∀ x  → Any P xs → Any P (x ∷ xs)
 
+any : {A : Set} {P : A → Set} → (P? : Decidable P) → (xs : List A) → Dec (Any P xs)
+any P? [] = no (λ ())
+any P? (x ∷ xs) with P? x
+...             | yes Px = yes [ Px ]
+...             | no ¬Px with any P? xs
+...                      | yes ∃xsP = yes (x ∷ ∃xsP)
+...                      | no ¬∃xsP = no φ where φ : _
+                                                 φ [ Px ]  = ¬Px Px
+                                                 φ (x ∷ a) = ¬∃xsP a
+
 -- The above defines membership. We define non-membership positively.
 
 _∈_ : {A : Set} → (x : A) → List A → Set

@@ -7,6 +7,7 @@ open import List
     _∉_        to _[∉]_        ;
     All        to All[]        ;
     Any        to Any[]        ;
+    any        to any[]        ;
     ∉→¬∈       to [∉]→¬[∈]     ;
     ¬∈→∉       to ¬[∈]→[∉]     ;
     decide∈    to decide[∈]    )
