@@ -8,8 +8,6 @@ open import List
     All        to All[]        ;
     Any        to Any[]        ;
     any        to any[]        ;
-    ∉→¬∈       to [∉]→¬[∈]     ;
-    ¬∈→∉       to ¬[∈]→[∉]     ;
     decide∈    to decide[∈]    )
 
 open import Functools
@@ -66,7 +64,7 @@ all¬→¬any : {A : Set} → {_≟_ : Decidable≡ A}
                 → All (¬_ ∘ P) ⟨ αs ∖ xs ⟩ → ¬(Any P ⟨ αs ∖ xs ⟩)
 all¬→¬any P ∅         xs all¬            ()
 all¬→¬any P (α ∷ αs)  xs (¬Pα ∷ all¬)    [ Pα , α∉xs ] = ¬Pα Pα
-all¬→¬any P (α ∷ αs)  xs (α∈xs -∷ all¬)  [ Pα , α∉xs ] = [∉]→¬[∈] α∉xs α∈xs
+all¬→¬any P (α ∷ αs)  xs (α∈xs -∷ all¬)  [ Pα , α∉xs ] = α∉xs α∈xs
 all¬→¬any P (α ∷ αs)  xs (x ∷ all¬)      (.α ∷ any)    = all¬→¬any P αs xs all¬ any
 all¬→¬any P (α ∷ αs)  xs (x -∷ all¬)     (.α ∷ any)    = all¬→¬any P αs xs all¬ any
 all¬→¬any P (αs - α)  xs (.α ~ all¬)     (.α ~ any)    = all¬→¬any P αs (α ∷ xs) all¬ any
@@ -79,7 +77,7 @@ all¬→¬any P (αs ∪ βs) xs (allα¬ ∪ allβ¬) (any ∪∣ .βs)  = all�
 ¬any→all¬ P ∅ xs ¬any = ∅
 ¬any→all¬ {_} {_≟_} P (α ∷ αs) xs ¬any with decide[∈] _≟_ α xs
 ...           | yes α∈xs = α∈xs -∷ ¬any→all¬ P αs xs λ any → ¬any (α ∷ any)
-...           | no ¬α∈xs = (λ Pα → ¬any [ Pα , ¬[∈]→[∉] ¬α∈xs ])
+...           | no  α∉xs = (λ Pα → ¬any [ Pα , α∉xs ])
                            ∷ ¬any→all¬ P αs xs λ any → ¬any (α ∷ any)
 ¬any→all¬ P (αs - α)  xs ¬any = α ~ ¬any→all¬ P αs (α ∷ xs) λ any → ¬any (α ~ any)
 ¬any→all¬ P (αs ∪ βs) xs ¬any = ¬any→all¬ P αs xs (λ z → ¬any (z ∪∣ βs))
@@ -90,8 +88,8 @@ all¬→¬any P (αs ∪ βs) xs (allα¬ ∪ allβ¬) (any ∪∣ .βs)  = all�
 ¬all∷∣ : {A : Set} {_≟_ : Decidable≡ A}
          → {P : A → Set} → {α : A} → {αs : Ensemble _≟_} → {xs : List A}
          → ¬(P α) → ¬(α [∈] xs) →  ¬(All P ⟨ α ∷ αs ∖ xs ⟩)
-¬all∷∣ {_} {_} {P} {α} {αs} {xs} ¬Pα ¬α∈xs (x ∷ all)  = ¬Pα x
-¬all∷∣ {_} {_} {P} {α} {αs} {xs} ¬Pα ¬α∈xs (x -∷ all) = ¬α∈xs x
+¬all∷∣ {_} {_} {P} {α} {αs} {xs} ¬Pα α∉xs (x ∷ all)  = ¬Pα x
+¬all∷∣ {_} {_} {P} {α} {αs} {xs} ¬Pα α∉xs (x -∷ all) = α∉xs x
 
 ¬all∣∷ : {A : Set} {_≟_ : Decidable≡ A}
          → {P : A → Set} → {α : A} → {αs : Ensemble _≟_} → {xs : List A}
@@ -124,7 +122,7 @@ all¬→¬any P (αs ∪ βs) xs (allα¬ ∪ allβ¬) (any ∪∣ .βs)  = all�
 ¬any∉∷ : {A : Set} {_≟_ : Decidable≡ A}
         → {P : A → Set} → {α : A} → {αs : Ensemble _≟_} → {xs : List A}
         → (α [∈] xs) → ¬(Any P ⟨ αs ∖ xs ⟩) → ¬(Any P ⟨ α ∷ αs ∖ xs ⟩)
-¬any∉∷ {_} {_} {P} {α} {αs} {xs} α∈xs ¬any [ Pα , α∉xs ] = [∉]→¬[∈] α∉xs α∈xs
+¬any∉∷ {_} {_} {P} {α} {αs} {xs} α∈xs ¬any [ Pα , α∉xs ] = α∉xs α∈xs
 ¬any∉∷ {_} {_} {P} {α} {αs} {xs} α∈xs ¬any (α ∷ any)     = ¬any any
 
 ¬any- : {A : Set} {_≟_ : Decidable≡ A}
@@ -159,9 +157,9 @@ all? P? ⟨ α ∷ αs ∖ xs ⟩ with all? P? ⟨ αs ∖ xs ⟩
 ...                                 | no ¬all = no (¬all∣∷ ¬all)
 all?_⟨_∖_⟩ {_} {_≟_} P? (α ∷ αs) xs | yes all with decide[∈] _≟_ α xs
 ...                                           | yes α∈xs = yes (α∈xs -∷ all)
-...                                           | no ¬α∈xs with P? α
+...                                           | no  α∉xs with P? α
 ...                                                      | yes Pα = yes (Pα ∷ all)
-...                                                      | no ¬Pα = no (¬all∷∣ ¬Pα ¬α∈xs)
+...                                                      | no ¬Pα = no (¬all∷∣ ¬Pα α∉xs)
 all? P? ⟨ αs - α  ∖ xs ⟩ with all? P? ⟨ αs ∖ α ∷ xs ⟩
 ...                      | yes all = yes (α ~ all)
 ...                      | no ¬all = no (¬all- ¬all)
@@ -180,8 +178,8 @@ any? P? ⟨ α ∷ αs  ∖ xs ⟩ with any? P? ⟨ αs ∖ xs ⟩
 ...                                 | yes any = yes (α ∷ any)
 any?_⟨_∖_⟩ {_} {_≟_} P? (α ∷ αs) xs | no ¬any with decide[∈] _≟_ α xs
 ...                                           | yes α∈xs = no (¬any∉∷ α∈xs ¬any)
-...                                           | no ¬α∈xs with P? α
-...                                                      | yes Pα = yes [ Pα , ¬[∈]→[∉] ¬α∈xs ]
+...                                           | no  α∉xs with P? α
+...                                                      | yes Pα = yes [ Pα , α∉xs ]
 ...                                                      | no ¬Pα = no (¬any¬∷ ¬Pα ¬any)
 any? P? ⟨ αs - α  ∖ xs ⟩ with any? P? ⟨ αs ∖ α ∷ xs ⟩
 ...                      | yes any = yes (α ~ any)
