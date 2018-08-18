@@ -4,6 +4,15 @@ open import Agda.Builtin.List public
 open import Agda.Builtin.Equality
 open import Decidable
 
+private
+  data _⊎_ (A B : Set) : Set where
+    inl : A → A ⊎ B
+    inr : B → A ⊎ B
+
+  ⊎-elim : {C : Set} → {A B : Set} → A ⊎ B → (A → C) → (B → C) → C
+  ⊎-elim (inl a) A→C B→C = A→C a
+  ⊎-elim (inr b) A→C B→C = B→C b
+
 infixr 5 _++_
 
 _++_ : {A : Set} → List A → List A → List A
@@ -15,22 +24,28 @@ data All {A : Set} (P : A → Set) : List A → Set where
   []  : All P []
   _∷_ : ∀{x xs} → P x → All P xs → All P (x ∷ xs)
 
+headAll : ∀{A x xs} {P : A → Set} → All P (x ∷ xs) → P x
+headAll (Px ∷ _) = Px
+
+tailAll : ∀{A x xs} {P : A → Set} → All P (x ∷ xs) → All P xs
+tailAll (_ ∷ ∀xsP) = ∀xsP
+
 all : {A : Set} {P : A → Set} → (P? : Decidable P) → (xs : List A) → Dec (All P xs)
 all P? [] = yes []
 all P? (x ∷ xs) with P? x
-...             | no ¬Px = no φ
-                           where φ : _
-                                 φ (Px ∷ _) = ¬Px Px
+...             | no ¬Px = no λ φ → ¬Px (headAll φ)
 ...             | yes Px with all P? xs
 ...                      | yes ∀xsP = yes (Px ∷ ∀xsP)
-...                      | no ¬∀xsP = no φ
-                                      where φ : _
-                                            φ (_ ∷ z) = ¬∀xsP z
+...                      | no ¬∀xsP = no λ φ → ¬∀xsP (tailAll φ)
 
 
 data Any {A : Set} (P : A → Set) : List A → Set where
   [_] : ∀{xs} → ∀{x} → P x      → Any P (x ∷ xs)
   _∷_ : ∀{xs} → ∀ x  → Any P xs → Any P (x ∷ xs)
+
+disjAny : ∀{A x xs} {P : Pred A} → Any P (x ∷ xs) → (P x) ⊎ (Any P xs)
+disjAny [ Px ]     = inl Px
+disjAny (_ ∷ ∃xsP) = inr ∃xsP
 
 any : {A : Set} {P : A → Set} → (P? : Decidable P) → (xs : List A) → Dec (Any P xs)
 any P? [] = no (λ ())
@@ -38,9 +53,7 @@ any P? (x ∷ xs) with P? x
 ...             | yes Px = yes [ Px ]
 ...             | no ¬Px with any P? xs
 ...                      | yes ∃xsP = yes (x ∷ ∃xsP)
-...                      | no ¬∃xsP = no φ where φ : _
-                                                 φ [ Px ]  = ¬Px Px
-                                                 φ (x ∷ a) = ¬∃xsP a
+...                      | no ¬∃xsP = no (λ φ → ⊎-elim (disjAny φ) ¬Px ¬∃xsP)
 
 
 -- The above defines membership.
@@ -66,5 +79,5 @@ decide∈ _≟_ x xs = any (x ≟_) xs
 ∉empty ()
 
 ∉notat : {A : Set} {x : A} → ∀{y ys} → x ≢ y → x ∉ ys → x ∉ (y ∷ ys)
-∉notat x≢y x∉ys [ x≡y ] = x≢y x≡y
+∉notat x≢y x∉ys [ x≡y ]    = x≢y x≡y
 ∉notat x≢y x∉ys (x ∷ x∈ys) = x∉ys x∈ys

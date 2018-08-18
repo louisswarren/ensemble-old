@@ -14,14 +14,11 @@ data Dec (A : Set) : Set where
   yes :   A → Dec A
   no  : ¬ A → Dec A
 
-Decidable : {A : Set} → (A → Set) → Set
+Pred : Set → Set₁
+Pred A = A → Set
+
+Decidable : {A : Set} → Pred A → Set
 Decidable P = ∀ x → Dec (P x)
 
 Decidable≡ : Set → Set
 Decidable≡ A = (x y : A) → Dec (x ≡ y)
-
-isYes : {A : Set} → {f : A → Set} → Decidable f → A → Set
-isYes {_} {f} P x = f x
-
-isNo : {A : Set} → {f : A → Set} → Decidable f → A → Set
-isNo {_} {f} P x = ¬(f x)
