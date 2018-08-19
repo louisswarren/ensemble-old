@@ -22,3 +22,4 @@ data _⊎_ (A B : Set) : Set where
 ⊎-elim : {C : Set} → {A B : Set} → A ⊎ B → (A → C) → (B → C) → C
 ⊎-elim (inl a) A→C B→C = A→C a
 ⊎-elim (inr b) A→C B→C = B→C b
+

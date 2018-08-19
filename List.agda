@@ -35,9 +35,13 @@ data Any {A : Set} (P : A → Set) : List A → Set where
   [_] : ∀{xs} → ∀{x} → P x      → Any P (x ∷ xs)
   _∷_ : ∀{xs} → ∀ x  → Any P xs → Any P (x ∷ xs)
 
-disjAny : ∀{A x xs} {P : Pred A} → Any P (x ∷ xs) → (P x) ⊎ (Any P xs)
-disjAny [ Px ]     = inl Px
-disjAny (_ ∷ ∃xsP) = inr ∃xsP
+hereAny : ∀{A x xs} {P : Pred A} → Any P (x ∷ xs) → ¬(Any P xs) → P x
+hereAny [ Px ]     ¬∃xsP = Px
+hereAny (_ ∷ ∃xsP) ¬∃xsP = ⊥-elim (¬∃xsP ∃xsP)
+
+laterAny : ∀{A x xs} {P : Pred A} → Any P (x ∷ xs) → ¬(P x) → (Any P xs)
+laterAny [ Px ]     ¬Px = ⊥-elim (¬Px Px)
+laterAny (_ ∷ ∃xsP) ¬Px = ∃xsP
 
 any : {A : Set} {P : A → Set} → (P? : Decidable P) → (xs : List A) → Dec (Any P xs)
 any P? [] = no (λ ())
@@ -45,7 +49,7 @@ any P? (x ∷ xs) with P? x
 ...             | yes Px = yes [ Px ]
 ...             | no ¬Px with any P? xs
 ...                      | yes ∃xsP = yes (x ∷ ∃xsP)
-...                      | no ¬∃xsP = no (λ φ → ⊎-elim (disjAny φ) ¬Px ¬∃xsP)
+...                      | no ¬∃xsP = no λ φ → ¬Px (hereAny φ ¬∃xsP)
 
 
 -- The above defines membership.

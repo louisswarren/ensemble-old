@@ -7,6 +7,9 @@ data ⊥ : Set where
 ¬_ : (A : Set) → Set
 ¬ A = A → ⊥
 
+⊥-elim : {A : Set} → ⊥ → A
+⊥-elim ()
+
 _≢_ : {A : Set} → A → A → Set
 x ≢ y = ¬(x ≡ y)
 
