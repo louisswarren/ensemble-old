@@ -1,7 +1,6 @@
 module List where
 
 open import Agda.Builtin.List public
-open import Agda.Builtin.Equality
 open import Decidable
 
 infixr 5 _++_
