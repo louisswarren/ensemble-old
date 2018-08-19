@@ -3,15 +3,7 @@ module List where
 open import Agda.Builtin.List public
 open import Agda.Builtin.Equality
 open import Decidable
-
-private
-  data _⊎_ (A B : Set) : Set where
-    inl : A → A ⊎ B
-    inr : B → A ⊎ B
-
-  ⊎-elim : {C : Set} → {A B : Set} → A ⊎ B → (A → C) → (B → C) → C
-  ⊎-elim (inl a) A→C B→C = A→C a
-  ⊎-elim (inr b) A→C B→C = B→C b
+open import Functools
 
 infixr 5 _++_
 
