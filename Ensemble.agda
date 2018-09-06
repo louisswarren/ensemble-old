@@ -8,8 +8,6 @@ open import List
     _∉_        to _[∉]_        ;
     decide∈    to decide[∈]    )
 
-open import Functools
-
 -- An ensemble is like a decidable finite set, but we do not define a
 -- comprehension constructor.
 
