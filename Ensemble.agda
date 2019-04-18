@@ -169,3 +169,30 @@ _⊂_ : {A : Set} {_≟_ : Decidable≡ A} → (αs βs : Ensemble _≟_) → Se
 
 _⊂?_ : {A : Set} {_≟_ : Decidable≡ A} → (αs βs : Ensemble _≟_) → Dec (αs ⊂ βs)
 _⊂?_ {A} {_≟_} αs βs = all (λ x → any _≟_ x ⟨ βs ∖ [] ⟩) ⟨ αs ∖ [] ⟩
+
+postulate anyweaken : {A : Set} {_≟_ : Decidable≡ A} {P : Pred A}
+              → (P? : Decidable P) → (αs : Ensemble _≟_) → (xs : List A)
+              → (x : A) → Any P ⟨ αs ∖ x ∷ xs ⟩ → Any P ⟨ αs ∖ xs ⟩
+--anyweaken P .(_ ∷ _) xs x [ x₁ , x₂ ] = [ x₁ , (λ z → x₂ (x ∷ z)) ]
+--anyweaken P .(α ∷ _) xs x (α ∷ x₁) = α ∷ anyweaken P _ xs x x₁
+--anyweaken P (αs - α) xs x (.α ~ x₂) = α ~ {!   !}
+--anyweaken P .(αs ∪ _) xs x (αs ∣∪ x₁) = αs ∣∪ anyweaken P _ xs x x₁
+--anyweaken P .(_ ∪ βs) xs x (x₁ ∪∣ βs) = anyweaken P _ xs x x₁ ∪∣ βs
+
+irrel : {A : Set} {_≟_ : Decidable≡ A} → (α : A)
+              → (αs : Ensemble _≟_) → (xs : List A)
+              → (x : A) → α ∈ αs ∖ xs → x ≢ α → α ∈ αs ∖ (x ∷ xs)
+irrel α .(α ∷ _) xs x [ refl , x₂ ] x≢α = [ refl , (λ { [ refl ] → x≢α refl ; (x ∷ k) → x₂ k }) ]
+irrel α .(α₁ ∷ _) xs x (α₁ ∷ m) x≢α = α₁ ∷ irrel α _ xs x m x≢α
+irrel α (αs - .β) xs x (β ~ m) x≢α = ?
+irrel α .(αs ∪ _) xs x (αs ∣∪ m) x≢α = αs ∣∪ irrel α _ xs x m x≢α
+irrel α .(_ ∪ βs) xs x (m ∪∣ βs) x≢α = irrel α _ xs x m x≢α ∪∣ βs
+
+irrel2 : {A : Set} {_≟_ : Decidable≡ A} → (α : A)
+              → (αs : Ensemble _≟_) → (xs : List A)
+              → (x : A) → α ∈ αs ∖ xs → x ≢ α → α ∈ (αs - x) ∖ xs
+irrel2 α .(_ ∷ _) xs x [ x₁ , x₂ ] x≢α = {!   !}
+irrel2 α .(α₁ ∷ _) xs x (α₁ ∷ m) x≢α = {!   !}
+irrel2 α .(_ - x₁) xs x (x₁ ~ m) x≢α = {!   !}
+irrel2 α .(αs ∪ _) xs x (αs ∣∪ m) x≢α = {!   !}
+irrel2 α .(_ ∪ βs) xs x (m ∪∣ βs) x≢α = {!   !}
