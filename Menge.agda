@@ -56,17 +56,13 @@ loopin : {A : Set} {eq : Decidable≡ A} → (α : A) → (αs : Ensemble.Ensemb
 loopin α Ensemble.∅ ()
 loopin α (.α Ensemble.∷ αs) (inl refl) = Ensemble.[ refl , (λ ()) ]
 loopin α (x Ensemble.∷ αs) (inr x₁) = x Ensemble.∷ loopin α αs x₁
-loopin α (αs Ensemble.- x) (fst₁ , snd₁) = x Ensemble.~ {!   !}
-  where
-    lem : Ensemble.Any _≡_ α ⟨ αs ∖ List.List.[] ⟩
-    lem = loopin α αs snd₁
-    lem2 : Ensemble.Any _≡_ α ⟨ αs ∖ x List.∷ List.List.[] ⟩
-    lem2 with lem
-    lem2 | Ensemble.[ x , x₁ ] = {!   !}
-    lem2 | α Ensemble.∷ c = {!   !}
-    lem2 | x Ensemble.~ c = {!   !}
-    lem2 | αs Ensemble.∣∪ c = {!   !}
-    lem2 | c Ensemble.∪∣ βs = {!   !}
+loopin α (αs Ensemble.- x) (fst₁ , snd₁) with loopin α αs snd₁
+loopin α (.(α Ensemble.∷ _) Ensemble.- x) (fst₁ , snd₁) | Ensemble.[ refl , x₂ ] = x Ensemble.~ Ensemble.[ refl , (λ { List.[ refl ] → fst₁ refl ; (x List.∷ k) → x₂ k }) ]
+loopin .α₁ (.(α₁ Ensemble.∷ _) Ensemble.- x) (fst₁ , inl refl) | α₁ Ensemble.∷ c = x Ensemble.~ Ensemble.[ refl , (λ { List.[ refl ] → fst₁ refl ; (x List.∷ ()) }) ]
+loopin α (.(α₁ Ensemble.∷ _) Ensemble.- x) (fst₁ , inr x₁) | α₁ Ensemble.∷ c = x Ensemble.~ (α₁ Ensemble.∷ {!   !})
+loopin α (.(_ Ensemble.- x₁) Ensemble.- x) (fst₁ , snd₁) | x₁ Ensemble.~ c = x Ensemble.~ {!   !}
+loopin α (.(αs Ensemble.∪ _) Ensemble.- x) (fst₁ , snd₁) | αs Ensemble.∣∪ c = x Ensemble.~ {!   !}
+loopin α (.(_ Ensemble.∪ βs) Ensemble.- x) (fst₁ , snd₁) | c Ensemble.∪∣ βs = x Ensemble.~ {!   !}
 loopin α (αs Ensemble.∪ αs₁) (inl x) = loopin α αs x Ensemble.∪∣ αs₁
 loopin α (αs Ensemble.∪ αs₁) (inr x) = αs Ensemble.∣∪ loopin α αs₁ x
 
